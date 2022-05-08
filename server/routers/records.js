@@ -9,5 +9,6 @@ router.get("/hotels/byIdOnCity/:id", controller.getHotelsByIdOnCity);
 router.post("/select/geo", controller.getGeoBySelect);
 router.post("/addCity", controller.addCity);
 router.post("/getHotelOfCity", controller.getHotelOfCity);
+router.post("/getHotelInfomation", controller.getHotelInfomation);
 
 module.exports = router;

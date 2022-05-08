@@ -3,17 +3,19 @@ import App from "./App.vue";
 import VueSocketIO from "vue-socket.io";
 import SocketIO from "socket.io-client";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-
 import VueSession from "vue-session";
 Vue.use(VueSession);
-
+import vuetify from "@/plugins/vuetify"; // path to vuetify export
 // Import Bootstrap and BootstrapVue CSS files (order is important)
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import ElementUI from "element-ui";
+import "element-ui/lib/theme-chalk/index.css";
+
+Vue.use(ElementUI);
 
 // Make BootstrapVue available throughout your project
 Vue.use(BootstrapVue);
-
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin);
 
@@ -44,5 +46,6 @@ Vue.use(VueGoogleMaps, {
 });
 
 new Vue({
+  vuetify,
   render: (h) => h(App),
 }).$mount("#app");

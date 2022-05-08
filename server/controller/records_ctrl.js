@@ -112,9 +112,9 @@ exports.getGeoBySelect = async (req, res) => {
 exports.addCity = async (req, res) => {
   const cluster = req.app.locals.cluster;
   const location = req.body;
-
+  console.log("cityInfo", location);
   const query = `UPSERT INTO \`travel-sample\`.inventory.city (KEY, VALUE) VALUES('city_${
-    location.data.place_id
+    location.place_id
   }', ${JSON.stringify(location)})`;
   console.log(location);
   try {
@@ -176,7 +176,7 @@ exports.getHotelOfCity = async (req, res) => {
   try {
     const client = new Client({});
     const location = req.body;
-    console.log(location);
+
     const cluster = req.app.locals.cluster;
 
     client
@@ -191,7 +191,7 @@ exports.getHotelOfCity = async (req, res) => {
         timeout: 1000, // milliseconds
       })
       .then((result) => {
-        console.log("page token", location.pageToken);
+        // console.log("page token", location.pageToken);
         // store to db
         result.data.results.map((hotel) => {
           hotel.city = location.cityName;
@@ -222,6 +222,78 @@ exports.getHotelOfCity = async (req, res) => {
           res.send(result.data.results);
         }
       });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+getPlaceNearby = () => {
+  const client = new Client({});
+
+  const result = client.placesNearby({
+    params: {
+      type: "lodging",
+      radius: "5000",
+      location: { lat: 10.045162, lng: 105.746857 },
+      key: "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc",
+    },
+    timeout: 2000, // milliseconds
+  });
+
+  // let location = "10.045162,105.746857";
+  // let radius = "15000";
+  // let type = "lodging";
+  // let key = "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc";
+  // const result = await axios.get(
+  //   // decodeURI(
+  //   //   `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=10.045162%2C105.746857&radius=15000&type=lodging&key=AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc&pagetoken=${page_token}`
+  //   // )
+
+  //   decodeURI(
+  //     `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location}&radius=${radius}&type=${type}&key=${key}&next_page_token=${page_token}`
+  //   )
+  // );
+
+  return result;
+};
+exports.getHotelInfomation = async (req, res) => {
+  try {
+    const client = new Client({});
+    const place_id = req.body.place_id;
+    console.log(place_id);
+    const cluster = req.app.locals.cluster;
+
+    client
+      .placeDetails({
+        params: {
+          place_id: place_id,
+          key: "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc",
+        },
+        timeout: 1000, // milliseconds
+      })
+      .then(async (result) => {
+        if (result.data.result.photos) {
+          const photoPath = await Promise.all(
+            result.data.result.photos.map(async (photo) => {
+              const respo = await client.placePhoto({
+                params: {
+                  maxheight: "500",
+                  photo_reference: photo.photo_reference,
+                  key: "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc",
+                },
+                timeout: 1000, // milliseconds
+              });
+
+              return `https://lh3.googleusercontent.com${respo.request.path}`;
+            })
+          );
+          result.data.photoUrl = photoPath;
+          res.send(result.data);
+        } else {
+          res.send(result.data);
+        }
+      });
+    //send to client
   } catch (err) {
     console.log(err);
   }
