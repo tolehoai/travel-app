@@ -132,13 +132,13 @@ getPlaceNearbyWithNextPageToken = async (page_token) => {
 
   const result = await client.placesNearby({
     params: {
-      key: "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc",
+      key: "AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y",
       type: "lodging",
       radius: "5000",
       location: { lat: 10.045162, lng: 105.746857 },
       next_page_token: page_token,
     },
-    timeout: 2000, // milliseconds
+    timeout: 5000, // milliseconds
   });
   return result;
 };
@@ -151,18 +151,18 @@ getPlaceNearby = () => {
       type: "lodging",
       radius: "5000",
       location: { lat: 10.045162, lng: 105.746857 },
-      key: "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc",
+      key: "AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y",
     },
-    timeout: 2000, // milliseconds
+    timeout: 5000, // milliseconds
   });
 
   // let location = "10.045162,105.746857";
   // let radius = "15000";
   // let type = "lodging";
-  // let key = "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc";
+  // let key = "AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y";
   // const result = await axios.get(
   //   // decodeURI(
-  //   //   `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=10.045162%2C105.746857&radius=15000&type=lodging&key=AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc&pagetoken=${page_token}`
+  //   //   `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=10.045162%2C105.746857&radius=15000&type=lodging&key=AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y&pagetoken=${page_token}`
   //   // )
 
   //   decodeURI(
@@ -182,13 +182,14 @@ exports.getHotelOfCity = async (req, res) => {
     client
       .placesNearby({
         params: {
+          // type: "lodging",
           type: "lodging",
           radius: location.radius,
           location: location.position,
-          key: "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc",
+          key: "AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y",
           pagetoken: location.pageToken || "",
         },
-        timeout: 1000, // milliseconds
+        timeout: 5000, // milliseconds
       })
       .then((result) => {
         // console.log("page token", location.pageToken);
@@ -235,18 +236,18 @@ getPlaceNearby = () => {
       type: "lodging",
       radius: "5000",
       location: { lat: 10.045162, lng: 105.746857 },
-      key: "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc",
+      key: "AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y",
     },
-    timeout: 2000, // milliseconds
+    timeout: 5000, // milliseconds
   });
 
   // let location = "10.045162,105.746857";
   // let radius = "15000";
   // let type = "lodging";
-  // let key = "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc";
+  // let key = "AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y";
   // const result = await axios.get(
   //   // decodeURI(
-  //   //   `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=10.045162%2C105.746857&radius=15000&type=lodging&key=AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc&pagetoken=${page_token}`
+  //   //   `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=10.045162%2C105.746857&radius=15000&type=lodging&key=AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y&pagetoken=${page_token}`
   //   // )
 
   //   decodeURI(
@@ -267,9 +268,9 @@ exports.getHotelInfomation = async (req, res) => {
       .placeDetails({
         params: {
           place_id: place_id,
-          key: "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc",
+          key: "AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y",
         },
-        timeout: 1000, // milliseconds
+        timeout: 5000, // milliseconds
       })
       .then(async (result) => {
         if (result.data.result.photos) {
@@ -279,9 +280,9 @@ exports.getHotelInfomation = async (req, res) => {
                 params: {
                   maxheight: "500",
                   photo_reference: photo.photo_reference,
-                  key: "AIzaSyCqd1XS0Jt-VUrhm_x1nY9bmQEk5xwf8Sc",
+                  key: "AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y",
                 },
-                timeout: 1000, // milliseconds
+                timeout: 5000, // milliseconds
               });
 
               return `https://lh3.googleusercontent.com${respo.request.path}`;

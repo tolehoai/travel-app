@@ -1,5 +1,5 @@
 const { Client } = require("@googlemaps/google-maps-services-js");
-
+const client = new Client({});
 module.exports = function (io, cluster) {
   io.on("connection", (socket) => {
     console.log("a user connected");
@@ -9,6 +9,19 @@ module.exports = function (io, cluster) {
     });
     //{ lat: 45, lng: -110 }
     socket.on("selectGeo", (geo) => {
+      let nearbyData = [];
+
+      const roomID = JSON.stringify({ geo });
+
+      if (roomID == socket.location) {
+        socket.join(roomID);
+      } else {
+        socket.adapter.rooms.delete(socket.location);
+        socket.join(roomID);
+        socket.location = roomID;
+      }
+      console.log("Socket: ", socket.adapter.rooms);
+
       client
         .placesNearby({
           params: {
@@ -16,14 +29,15 @@ module.exports = function (io, cluster) {
             key: process.env.GOOGLE_MAP_KEY,
             type: geo.type,
             radius: geo.radius,
+            rank_by: "distance",
+            // keyword: "khách sạn, hotel, nhà nghĩ, Khách Sạn",
           },
-          timeout: 1000, // milliseconds
+          timeout: 10000, // milliseconds
         })
         .then((r) => {
-          // console.log(r.data.results);
           try {
             r.data.results.map((hotel) => {
-              // console.log(hotel.geometry.location)
+              nearbyData.push(hotel);
               client
                 .reverseGeocode({
                   params: {
@@ -33,12 +47,17 @@ module.exports = function (io, cluster) {
                   timeout: 10000, // milliseconds
                 })
                 .then((result) => {
-                  console.log(result.data.results);
+                  result.data.results.map((r, index) => {
+                    nearbyData[index] = r;
+                  });
+                  // console.log(nearbyData);
                 });
-              // const query = `UPSERT INTO \`travel-sample\`.inventory.hotel (KEY, VALUE) VALUES('${
-              //   hotel.place_id}', ${JSON.stringify(hotel)})`;
 
-              //   // console.log(query)
+              // const query = `UPSERT INTO \`travel-sample\`.inventory.hotel (KEY, VALUE) VALUES('${
+              //   hotel.place_id
+              // }', ${JSON.stringify(hotel)})`;
+
+              // // console.log(query)
               // return new Promise((resolve, rejects) => {
               //   try {
               //     // console.log(cluster)
@@ -48,15 +67,14 @@ module.exports = function (io, cluster) {
               //   }
               // });
             });
+            io.to(socket.location).emit("getGeo", {
+              data: nearbyData,
+              room: socket.location,
+            });
           } catch (err) {
             // res.status(500).send({ error: err });
             // io.emit.error
           }
-
-          io.emit("getGeo", {
-            data: r.data.results,
-          });
-          //res.send(r.data.results[0].elevation)
         })
         .catch((e) => {
           console.log(e);
