@@ -24,7 +24,7 @@
         classname="form-control"
         placeholder="Nhập vào thành phố muốn tìm kiếm khách sạn..."
         v-on:placechanged="getAddressData"
-        types="(cities)"
+        types="(regions)"
         class="search el-input"
       >
       </vue-google-autocomplete>
@@ -36,7 +36,6 @@
     <button @click="chiduong()">Click</button>
     <button @click="getHotelOfCity()">Get Hotel</button> -->
 
-    <!-- <GmapAutocomplete @place_changed="setPlace" class="form-control" /> -->
     <!-- 
     <span>Chọn thành phố</span>
 
@@ -74,13 +73,15 @@
                 }}</el-checkbox>
               </el-checkbox-group> -->
               <b-row>
-                <b-col cols="4"><el-tag>Tên khách sạn: </el-tag></b-col>
+                <b-col cols="4">
+                  <el-tag>Tên khách sạn: </el-tag>
+                </b-col>
                 <b-col cols="8">{{ this.hotelInfomation.name }}</b-col>
               </b-row>
               <b-row>
-                <b-col cols="4"
-                  ><el-tag type="success">Đánh giá: </el-tag></b-col
-                >
+                <b-col cols="4">
+                  <el-tag type="success">Đánh giá: </el-tag>
+                </b-col>
                 <b-col cols="8">
                   <el-rate
                     v-model="this.hotelInfomation.rating"
@@ -93,9 +94,9 @@
                 </b-col>
               </b-row>
               <b-row>
-                <b-col cols="4"
-                  ><el-tag type="warning">Địa chỉ: </el-tag></b-col
-                >
+                <b-col cols="4">
+                  <el-tag type="warning">Địa chỉ: </el-tag>
+                </b-col>
                 <b-col cols="8">{{ this.hotelInfomation.address }}</b-col>
               </b-row>
 
@@ -123,6 +124,15 @@
                 >
                 <el-radio v-model="searchType" label="hospital"
                   >Bệnh viện</el-radio
+                >
+                <el-radio v-model="searchType" label="tourist_attraction"
+                  >Danh lam thắng cảnh</el-radio
+                >
+                <el-radio v-model="searchType" label="bank"
+                  >Ngân iu dấu</el-radio
+                >
+                <el-radio v-model="searchType" label="pharmacy"
+                  >Nhà thuốc</el-radio
                 >
                 <el-button type="primary" @click="getAround"
                   >Tìm kiếm địa điểm xung quanh</el-button
@@ -174,13 +184,15 @@
 
             <b-container class="bv-example-row">
               <b-row>
-                <b-col cols="4"><el-tag>Tên địa điểm: </el-tag></b-col>
+                <b-col cols="4">
+                  <el-tag>Tên địa điểm: </el-tag>
+                </b-col>
                 <b-col cols="8">{{ this.POIInfomation.name }}</b-col>
               </b-row>
               <b-row>
-                <b-col cols="4"
-                  ><el-tag type="success">Đánh giá: </el-tag></b-col
-                >
+                <b-col cols="4">
+                  <el-tag type="success">Đánh giá: </el-tag>
+                </b-col>
                 <b-col cols="8">
                   <el-rate
                     v-model="this.POIInfomation.rating"
@@ -193,9 +205,9 @@
                 </b-col>
               </b-row>
               <b-row>
-                <b-col cols="4"
-                  ><el-tag type="warning">Địa chỉ: </el-tag></b-col
-                >
+                <b-col cols="4">
+                  <el-tag type="warning">Địa chỉ: </el-tag>
+                </b-col>
                 <b-col cols="8">{{ this.POIInfomation.address }}</b-col>
               </b-row>
 
@@ -249,6 +261,15 @@
                   width="100"
                   sortable
                 >
+                  <template slot-scope="scope">
+                    <div style="float: right">
+                      {{ scope.row.rating }}
+                      <i
+                        class="el-rate__icon el-icon-star-on"
+                        style="color: rgb(247, 186, 42)"
+                      ></i>
+                    </div>
+                  </template>
                 </el-table-column>
               </div>
             </el-table>
@@ -291,6 +312,15 @@
                   width="100"
                   sortable
                 >
+                  <template slot-scope="scope">
+                    <div style="float: right">
+                      {{ scope.row.rating }}
+                      <i
+                        class="el-rate__icon el-icon-star-on"
+                        style="color: rgb(247, 186, 42)"
+                      ></i>
+                    </div>
+                  </template>
                 </el-table-column>
               </div>
             </el-table>
@@ -300,10 +330,14 @@
             variant="outline-primary"
             @click="callMoreHotel()"
             >Load more hotel
-          </b-button></b-col
-        >
-        <b-col cols="6" class="mapContent"
-          ><p v-if="!loadMap">Loading map... <i class="el-icon-loading"></i></p>
+          </b-button>
+        </b-col>
+        <b-col cols="6" class="mapContent">
+          <GmapAutocomplete
+            class="form-control"
+            @place_changed="hotelClickHandler"
+          />
+          <p v-if="!loadMap">Loading map... <i class="el-icon-loading"></i></p>
           <GmapMap
             :options="{ gestureHandling: 'greedy' }"
             ref="mapRef"
@@ -330,8 +364,9 @@
               v-for="(m, index) in poiMarker"
               :position="m.geometry.location"
               @click="directions(m.geometry.location)"
-            /> </GmapMap
-        ></b-col>
+            />
+          </GmapMap>
+        </b-col>
       </b-row>
       <LightBox
         v-if="hotelInfomation.photos"
@@ -510,19 +545,33 @@ export default {
       // }
     },
     hotelClickHandler(record, index) {
+      this.isShowAroundTable = false;
+      this.loadMore = false;
       this.imageLoading = true;
       this.noImage = false;
       this.hotelInfomation.photos = [];
       // 'record' will be the row data from items
       // `index` will be the visible row number (available in the v-model 'shownItems')
       console.log(record, index); // This will be the item data for the row
+      console.log(
+        "Lat: ",
+        record.geometry.location.lat.length == 0
+          ? record.geometry.location.lat()
+          : record.geometry.location.lat
+      );
       this.poiMarker = [];
       this.hotelInfomation.name = record.name;
       this.hotelInfomation.rating = record.rating;
       this.hotelInfomation.address = record.vicinity;
       this.hotelInfomation.place_id = record.place_id;
-      this.position.lat = record.geometry.location.lat;
-      this.position.lng = record.geometry.location.lng;
+      this.position.lat =
+        record.geometry.location.lat.length == 0
+          ? record.geometry.location.lat()
+          : record.geometry.location.lat;
+      this.position.lng =
+        record.geometry.location.lng.length == 0
+          ? record.geometry.location.lng()
+          : record.geometry.location.lng;
       this.$refs.mapRef.$mapPromise.then((map) => {
         console.log(map);
         map.zoom = 18;
@@ -570,6 +619,7 @@ export default {
         });
     },
     pointClickHandler(record, index) {
+      console.log("Hotel Info: ", record);
       this.endLocation = {
         lat: record.geometry.location.lat,
         lng: record.geometry.location.lng,
@@ -634,20 +684,7 @@ export default {
           console.log(error);
         });
     },
-    getHotelOfCity() {
-      axios
-        .post(`http://localhost:8081/records/getHotelOfCity`, {
-          cityName: "Cần Thơ",
-          position: { lat: 10.0451618, lng: 105.7468535 },
-          radius: 5000,
-          pageToken: this.pageToken,
-        })
-        .then((response) => {
-          console.log("Hotel data:", response);
-          this.pageToken = response.data[response.data.length - 1].pageToken;
-          console.log("pageToken: ", this.pageToken);
-        });
-    },
+
     callMoreHotel() {
       axios
         .post(`http://localhost:8081/records/getHotelOfCity`, {
@@ -712,7 +749,7 @@ export default {
       axios.post(`http://localhost:8081/records/addCity`, data);
       axios
         .post(`http://localhost:8081/records/getHotelOfCity`, {
-          radius: "5000",
+          radius: "20000",
           position: { lat: addressData.latitude, lng: addressData.longitude },
           cityName: addressData.locality,
           pageToken: this.pageToken,
@@ -818,15 +855,18 @@ export default {
   position: relative;
   height: 670px;
 }
+
 .loadMore {
   position: absolute;
   bottom: -10px;
 }
+
 .bgImg {
   position: absolute;
   top: 10px;
   left: 0;
 }
+
 .app-title {
   position: absolute;
   top: 280px;
@@ -837,6 +877,7 @@ export default {
   font-weight: 600;
   color: #fff;
 }
+
 .titleDesc {
   position: absolute;
   top: 350px;
@@ -849,12 +890,14 @@ export default {
   width: 780px;
   text-align: left;
 }
+
 .header {
   background-color: #2e51e8;
 
   height: 100vh;
   position: relative;
 }
+
 .search {
   position: absolute;
   bottom: 220px;
@@ -862,6 +905,7 @@ export default {
   height: 50px !important;
   left: 130px;
 }
+
 .searchBtn {
   position: absolute;
   height: 50px !important;
@@ -876,28 +920,35 @@ export default {
   right: 0;
   height: 90%;
 }
+
 .app-container {
   height: 100vh !important;
 }
+
 .mapContent {
   height: 100vh !important;
 }
+
 .backToHotelList {
   text-align: left !important;
   cursor: pointer;
 }
+
 .hotelTable::-webkit-scrollbar {
   width: 8px !important;
   height: 8px !important;
 }
+
 .hotelTable::-webkit-scrollbar-track {
   background-color: rgba(0, 0, 0, 0.4) !important;
   border-radius: 10px !important;
 }
+
 .hotelTable::-webkit-scrollbar-thumb {
   background-color: #dfdfdf !important;
   border-radius: 10px !important;
 }
+
 .pac-container .pac-logo .hdpi {
   z-index: 999 !important;
 }

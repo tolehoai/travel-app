@@ -182,8 +182,8 @@ exports.getHotelOfCity = async (req, res) => {
     client
       .placesNearby({
         params: {
-          // type: "lodging",
           type: "lodging",
+          // radius: location.radius,
           radius: location.radius,
           location: location.position,
           key: "AIzaSyBsJdSZuOsUdmDm-VXjEWf_D_aU6gZWb5Y",
