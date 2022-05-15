@@ -28,20 +28,7 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-const session = require("express-session");
-const cookieParser = require("cookie-parser");
 
-app.use(cookieParser());
-const oneDay = 1000 * 60 * 60 * 24;
-app.use(
-  session({
-    resave: true,
-    secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
-    saveUninitialized: true,
-    cookie: { maxAge: oneDay },
-    resave: false,
-  })
-);
 
 //Config cors
 app.use(function (req, res, next) {

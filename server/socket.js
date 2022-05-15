@@ -2,12 +2,10 @@ const { Client } = require("@googlemaps/google-maps-services-js");
 const client = new Client({});
 module.exports = function (io, cluster) {
   io.on("connection", (socket) => {
-    console.log("a user connected");
 
     socket.on("disconnect", () => {
-      console.log("user disconnected");
+      
     });
-    //{ lat: 45, lng: -110 }
     socket.on("selectGeo", (geo) => {
       let nearbyData = [];
 
@@ -20,7 +18,6 @@ module.exports = function (io, cluster) {
         socket.join(roomID);
         socket.location = roomID;
       }
-      console.log("Socket: ", socket.adapter.rooms);
 
       client
         .placesNearby({
@@ -50,22 +47,8 @@ module.exports = function (io, cluster) {
                   result.data.results.map((r, index) => {
                     nearbyData[index] = r;
                   });
-                  // console.log(nearbyData);
+                  
                 });
-
-              // const query = `UPSERT INTO \`travel-sample\`.inventory.hotel (KEY, VALUE) VALUES('${
-              //   hotel.place_id
-              // }', ${JSON.stringify(hotel)})`;
-
-              // // console.log(query)
-              // return new Promise((resolve, rejects) => {
-              //   try {
-              //     // console.log(cluster)
-              //     resolve(cluster.query(query));
-              //   } catch (err) {
-              //     rejects(err);
-              //   }
-              // });
             });
             io.to(socket.location).emit("getGeo", {
               data: nearbyData,
@@ -78,25 +61,8 @@ module.exports = function (io, cluster) {
         })
         .catch((e) => {
           console.log(e);
-          //res.send(e.response.data.error_message)
         });
     });
 
-    socket.on("selectCity", (data) => {
-      console.log(data);
-      const query = `UPSERT INTO \`travel-sample\`.inventory.city (KEY, VALUE) VALUES('${
-        data.place_id
-      }', ${JSON.stringify(data)})`;
-
-      // console.log(query)
-      return new Promise((resolve, rejects) => {
-        try {
-          // console.log(cluster)
-          resolve(cluster.query(query));
-        } catch (err) {
-          rejects(err);
-        }
-      });
-    });
   });
 };
