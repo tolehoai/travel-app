@@ -24,7 +24,7 @@ exports.getHotelOfCity = async (req, res) => {
     const location = req.body;
 
     const cluster = req.app.locals.cluster;
-
+    
     client
       .placesNearby({
         params: {
@@ -37,7 +37,7 @@ exports.getHotelOfCity = async (req, res) => {
         },
         timeout: 5000, // milliseconds
       })
-      .then((result) => {
+      .then( async (result) => {
         // store to db
         result.data.results.map((hotel) => {
           hotel.city = location.cityName;
@@ -52,6 +52,31 @@ exports.getHotelOfCity = async (req, res) => {
             res.status(500).send({ error: err });
           }
         });
+        //todo Get photo of city
+        const photoURL = await Promise.all(result.data.results.map(async (hotel) => {
+          if (hotel.photos) {
+            const photoPath = await Promise.all(
+              hotel.photos.map(async (photo) => {
+                const respo = await client.placePhoto({
+                  params: {
+                    maxheight: "500",
+                    photo_reference: photo.photo_reference,
+                    key: process.env.GOOGLE_MAP_KEY,
+                  },
+                  timeout: 5000, // milliseconds
+                });
+  
+                return `https://lh3.googleusercontent.com${respo.request.path}`;
+              })
+            );
+            return photoPath; 
+          }
+        }))
+        
+        //todo add photo to result
+        result.data.results.forEach((hotel, index) => {
+          hotel.photoPath = photoURL[index];
+        })
         //send to client
         if (location.pageToken == undefined) {
           result.data.results.push({

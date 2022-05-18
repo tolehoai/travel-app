@@ -27,7 +27,6 @@ module.exports = function (io, cluster) {
             type: geo.type,
             radius: geo.radius,
             rank_by: "distance",
-            // keyword: "khách sạn, hotel, nhà nghĩ, Khách Sạn",
           },
           timeout: 10000, // milliseconds
         })
