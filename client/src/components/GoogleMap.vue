@@ -33,8 +33,8 @@
         v-if="isSearchHomestay"
         id="map"
         classname="form-control"
-        placeholder="Nhập vào thành phố muốn tìm kiếm resort..."
-        v-on:placechanged="getAddressDataResort"
+        placeholder="Nhập vào thành phố muốn tìm kiếm homestay..."
+        v-on:placechanged="getAddressData"
         types="(regions)"
         class="search el-input"
       >
@@ -335,6 +335,7 @@
           <div class="search-area">
             <GmapAutocomplete
               class="form-control search-location"
+              placeholder="Nhập vào địa điểm cần tìm kiếm..."
               @place_changed="hotelClickHandler"
             />
 
@@ -860,75 +861,7 @@ export default {
           this.isLoadHotelData = false;
         });
     },
-    getAddressDataResort(addressData, placeResultData, id) {
-      this.isLoadHotelData = true;
-      this.loadMore = false;
-      this.isShowHotelList = true;
-      this.isShowHotelInfomation = false;
-      this.isShowAroundTable = false;
-      this.isShowAroundImfomation = false;
-      this.isShowPointInfomation = false;
-      this.hotelList = [];
-      document.querySelector("#hotelTableId").scrollIntoView({
-        behavior: "smooth",
-      });
-      this.hotelList = [];
-      this.pageToken = "";
-      console.log(addressData, placeResultData, id);
-      this.cityPosition = {
-        lat: addressData.latitude,
-        lng: addressData.longitude,
-      };
-      this.cityName = addressData.locality;
-      const data = {
-        position: { lat: addressData.latitude, lng: addressData.longitude },
-        cityName: addressData.locality,
-        country: addressData.country,
-        place_id: placeResultData.place_id,
-      };
-      console.log("cityInfo", data);
-      axios.post(`http://localhost:8081/records/addCity`, data);
-      var keyword;
-      this.isSearchHomestay
-        ? (keyword = "(Homestay) OR (homestay)")
-        : (keyword = "(Hotel) OR (khách sạn)");
-      axios
-        .post(`http://localhost:8081/records/getHotelOfCity`, {
-          radius: "20000",
-          position: { lat: addressData.latitude, lng: addressData.longitude },
-          cityName: addressData.locality,
-          pageToken: this.pageToken,
-          keyword,
-        })
 
-        .then((response) => {
-          console.log("Hotel data:", response);
-          this.pageToken = response.data[response.data.length - 1].pageToken;
-          console.log("pageToken: ", this.pageToken);
-          if (response.data[response.data.length - 1].pageToken == undefined) {
-            this.loadMore = false;
-            //Khong con next  page token
-            this.pageToken = "";
-            //xoa bo phan tu cuoi
-            response.data.splice(-1);
-            //luu vao state
-            response.data.map((hotel) => {
-              this.hotelList.push(hotel);
-            });
-          } else {
-            //con next page token
-            this.loadMore = true;
-            //xoa bo phan tu cuoi
-            response.data.splice(-1);
-            //luu vao state
-            response.data.map((hotel) => {
-              this.hotelList.push(hotel);
-            });
-          }
-          this.isLoadHotelData = false;
-          console.log("Resort LISTTTTT: ", this.hotelList);
-        });
-    },
     clickButton() {
       const data = {
         location: this.hotelInfomation.position,
