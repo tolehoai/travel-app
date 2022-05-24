@@ -383,8 +383,8 @@
               v-for="(m, index) in poiMarker"
               :position="m.geometry.location"
               :draggable="false"
-              @click="directions(m.geometry.location)"
             />
+            @click="directions(m.geometry.location)" />
           </GmapMap>
         </b-col>
       </b-row>
@@ -752,12 +752,17 @@ export default {
     },
 
     callMoreHotel() {
+      var keyword;
+      this.isSearchHomestay
+        ? (keyword = "(Homestay) OR (homestay)")
+        : (keyword = "(Hotel) OR (khách sạn)");
       axios
         .post(`http://localhost:8081/records/getHotelOfCity`, {
           radius: "5000",
           position: this.cityPosition,
           cityName: this.cityName,
           pageToken: this.pageToken,
+          keyword,
         })
         .then((response) => {
           console.log("Hotel data:", response);
@@ -814,13 +819,17 @@ export default {
       };
       console.log("cityInfo", data);
       axios.post(`http://localhost:8081/records/addCity`, data);
-
+      var keyword;
+      this.isSearchHomestay
+        ? (keyword = "(Homestay) OR (homestay)")
+        : (keyword = "(Hotel) OR (khách sạn)");
       axios
         .post(`http://localhost:8081/records/getHotelOfCity`, {
           radius: "20000",
           position: { lat: addressData.latitude, lng: addressData.longitude },
           cityName: addressData.locality,
           pageToken: this.pageToken,
+          keyword,
         })
 
         .then((response) => {
@@ -879,13 +888,17 @@ export default {
       };
       console.log("cityInfo", data);
       axios.post(`http://localhost:8081/records/addCity`, data);
-
+      var keyword;
+      this.isSearchHomestay
+        ? (keyword = "(Homestay) OR (homestay)")
+        : (keyword = "(Hotel) OR (khách sạn)");
       axios
-        .post(`http://localhost:8081/records/getResortOfCity`, {
+        .post(`http://localhost:8081/records/getHotelOfCity`, {
           radius: "20000",
           position: { lat: addressData.latitude, lng: addressData.longitude },
           cityName: addressData.locality,
           pageToken: this.pageToken,
+          keyword,
         })
 
         .then((response) => {
