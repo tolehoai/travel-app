@@ -8,7 +8,7 @@ const server = http.createServer(app);
 const bodyParser = require("body-parser");
 const couchbase = require("couchbase");
 const connectDatabase = async () => {
-  var clusterVal;
+  /*var clusterVal;
   await couchbase
     .connect("couchbase://localhost", {
       //process.env.CLUSTER, process.env.CLUSTER_PASSWORD dùng để lấy biến CLUSTER, CLUSTER_PASSWORD trong file .env
@@ -21,7 +21,7 @@ const connectDatabase = async () => {
       app.locals.cluster = cluster;
       app.locals.travel = cluster.bucket("travel-sample");
     });
-  return clusterVal;
+  return clusterVal;*/
 };
 
 app.set("views", path.join(__dirname, "views"));

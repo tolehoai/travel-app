@@ -1,17 +1,17 @@
 const { Client } = require("@googlemaps/google-maps-services-js");
 
 exports.addCity = async (req, res) => {
-  const cluster = req.app.locals.cluster;
-  const location = req.body;
-  
-  const query = `UPSERT INTO \`travel-sample\`.inventory.city (KEY, VALUE) VALUES('city_${
-    location.place_id
-  }', ${JSON.stringify(location)})`;
-  
   try {
-    const result = await cluster.query(query);
+    const cluster = req.app.locals.cluster;
+    const location = req.body;
     
+    const query = `UPSERT INTO \`travel-sample\`.inventory.city (KEY, VALUE) VALUES('city_${
+      location.place_id
+    }', ${JSON.stringify(location)})`;
+  
+    const result = await cluster.query(query);
     res.json(result);
+    
   } catch (err) {
     res.status(500).send({ error: err });
   }
@@ -22,13 +22,11 @@ exports.getHotelOfCity = async (req, res) => {
   try {
     const client = new Client({});
     const location = req.body;
-
     const cluster = req.app.locals.cluster;
     
     client
       .placesNearby({
         params: {
-          // type: "lodging",
           type: "lodging",
           radius: location.radius,
           location: location.position,
@@ -39,7 +37,7 @@ exports.getHotelOfCity = async (req, res) => {
       })
       .then( async (result) => {
         // store to db
-        result.data.results.map((hotel) => {
+        /*result.data.results.map((hotel) => {
           hotel.city = location.cityName;
           const query = `UPSERT INTO \`travel-sample\`.inventory.hotel (KEY, VALUE) VALUES('hotel_${
             hotel.place_id
@@ -51,7 +49,7 @@ exports.getHotelOfCity = async (req, res) => {
           } catch (err) {
             res.status(500).send({ error: err });
           }
-        });
+        });*/
         //todo Get photo of city
         const photoURL = await Promise.all(result.data.results.map(async (hotel) => {
           if (hotel.photos) {
@@ -93,12 +91,13 @@ exports.getHotelOfCity = async (req, res) => {
         }
       });
   } catch (err) {
-    console.log(err);
+    res.status(500).send({ error: err });
   }
+
 };
 
 
-exports.getHotelInfomation = async (req, res) => {
+exports.getHotelInformation = async (req, res) => {
   try {
     const client = new Client({});
     const place_id = req.body.place_id;
@@ -112,11 +111,11 @@ exports.getHotelInfomation = async (req, res) => {
         },
         timeout: 5000, // milliseconds
       })
-      .then(async (result) => {
-        if (result.data.result.photos) {
+      .then(async (detailsResult) => {
+        if (detailsResult.data.result.photos) {
           const photoPath = await Promise.all(
-            result.data.result.photos.map(async (photo) => {
-              const respo = await client.placePhoto({
+            detailsResult.data.result.photos.map(async (photo) => {
+              const photoResult = await client.placePhoto({
                 params: {
                   maxheight: "500",
                   photo_reference: photo.photo_reference,
@@ -125,17 +124,23 @@ exports.getHotelInfomation = async (req, res) => {
                 timeout: 5000, // milliseconds
               });
 
-              return `https://lh3.googleusercontent.com${respo.request.path}`;
+              return `https://lh3.googleusercontent.com${photoResult.request.path}`;
             })
           );
-          result.data.photoUrl = photoPath;
-           
+          detailsResult.data.photoUrl = photoPath;
+
+          const query = `UPSERT INTO \`travel-sample\`.inventory.hotel_information (KEY, VALUE) VALUES('hotel_${
+            place_id
+          }', ${JSON.stringify(detailsResult)})`;
+          await cluster.query(query);
+          
+          res.send(detailsResult.data)
         } else {
-          res.send(result.data);
+          res.send(detailsResult.data);
         }
       });
     //send to client
   } catch (err) {
-    console.log(err);
+    res.status(500).send({ error: err });
   }
 };
