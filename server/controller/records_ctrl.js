@@ -187,6 +187,7 @@ exports.getHotelOfCity = async (req, res) => {
           radius: location.radius,
           location: location.position,
           key: process.env.GOOGLE_MAP_KEY,
+          keyword: "(Hotel) OR (khách sạn)",
           pagetoken: location.pageToken || "",
         },
         timeout: 5000, // milliseconds
@@ -265,7 +266,7 @@ exports.getResortOfCity = async (req, res) => {
           location: location.position,
           key: process.env.GOOGLE_MAP_KEY,
           pagetoken: location.pageToken || "",
-          keyword: "(Resort) OR (resort)",
+          keyword: "(Homestay) OR (homestay)",
         },
         timeout: 5000, // milliseconds
       })
@@ -390,12 +391,16 @@ exports.getHotelInfomation = async (req, res) => {
             })
           );
           result.data.photoUrl = photoPath;
+          const query = `UPSERT INTO \`travel-sample\`.inventory.hotel_information (KEY, VALUE) VALUES('hotel_${place_id}', ${JSON.stringify(
+            result.data
+          )})`;
+          await cluster.query(query);
+
           res.send(result.data);
         } else {
           res.send(result.data);
         }
       });
-    //send to client
   } catch (err) {
     console.log(err);
   }

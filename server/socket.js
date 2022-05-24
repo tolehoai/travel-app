@@ -50,22 +50,22 @@ module.exports = function (io, cluster) {
                   result.data.results.map((r, index) => {
                     nearbyData[index] = r;
                   });
-                  // console.log(nearbyData);
+                  console.log(nearbyData);
                 });
 
-              // const query = `UPSERT INTO \`travel-sample\`.inventory.hotel (KEY, VALUE) VALUES('${
-              //   hotel.place_id
-              // }', ${JSON.stringify(hotel)})`;
+              const query = `UPSERT INTO \`travel-sample\`.inventory.poi (KEY, VALUE) VALUES('${
+                hotel.place_id
+              }', ${JSON.stringify(hotel)})`;
 
-              // // console.log(query)
-              // return new Promise((resolve, rejects) => {
-              //   try {
-              //     // console.log(cluster)
-              //     resolve(cluster.query(query));
-              //   } catch (err) {
-              //     rejects(err);
-              //   }
-              // });
+              // console.log(query)
+              return new Promise((resolve, rejects) => {
+                try {
+                  // console.log(cluster)
+                  resolve(cluster.query(query));
+                } catch (err) {
+                  rejects(err);
+                }
+              });
             });
             io.to(socket.location).emit("getGeo", {
               data: nearbyData,

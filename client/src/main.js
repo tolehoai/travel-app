@@ -44,6 +44,7 @@ Vue.use(VueGoogleMaps, {
     // key: "AIzaSyDPicTApjbER2ZKnR2bVELyF_-KhKIbE80",
     // key: "AIzaSyANDj4mJ2i_d0zRiNozVqbUGMgZTnDOeYI", //ok
     // key: "AIzaSyALYcsPh3unwjOuZ1aRDtQAHcz3DXMQVm4", //ok
+    // key: "AIzaSyBPj2HzzIHYkdssM58lpODmMebR_YFDiKE",
     key: "AIzaSyBPj2HzzIHYkdssM58lpODmMebR_YFDiKE",
     libraries: "places", // This is required if you use the Autocomplete plugin
   },

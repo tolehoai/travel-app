@@ -20,6 +20,7 @@
       </h5>
 
       <vue-google-autocomplete
+        v-if="isSearchHotel"
         id="map"
         classname="form-control"
         placeholder="Nhập vào thành phố muốn tìm kiếm khách sạn..."
@@ -28,53 +29,55 @@
         class="search el-input"
       >
       </vue-google-autocomplete>
+      <vue-google-autocomplete
+        v-if="isSearchHomestay"
+        id="map"
+        classname="form-control"
+        placeholder="Nhập vào thành phố muốn tìm kiếm resort..."
+        v-on:placechanged="getAddressDataResort"
+        types="(regions)"
+        class="search el-input"
+      >
+      </vue-google-autocomplete>
       <!-- <b-form-input :type="type" class="search"> </b-form-input> -->
-      <b-button variant="success" class="searchBtn">Khám phá ngay</b-button>
+      <b-button
+        variant="warning"
+        class="searchBtnHotel"
+        @click="handleSearchByHotel"
+        >Khám phá ngay khách sạn</b-button
+      >
+      <b-button
+        variant="warning"
+        class="searchBtnResort"
+        @click="handleSearchByResort"
+        >Khám phá ngay Homestay</b-button
+      >
     </div>
-
-    <!-- <button @click="clickButton()">Dispatch</button>
-    <button @click="chiduong()">Click</button>
-    <button @click="getHotelOfCity()">Get Hotel</button> -->
-
-    <!-- 
-    <span>Chọn thành phố</span>
-
-    <span>Chọn loại địa điểm</span> -->
 
     <b-container fluid class="app-container">
       <b-row>
-        <b-col cols="6">
+        <b-col cols="5">
           <!-- <GmapAutocomplete
             @place_changed="getHotelInfo"
             class="form-control"
             placeholder="Nhập vào khách sạn cần tìm kiếm..."
           /> -->
           <div class="hotelInfomation" v-if="isShowHotelInfomation">
-            <h1>Thông tin khách sạn</h1>
+            <h1>
+              Thông tin {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+            </h1>
             <p @click="backToHotelList" class="backToHotelList">
               <i class="el-icon-back"></i>
-              Trở về danh sách khách sạn
+              Trở về danh sách
+              {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
             </p>
 
             <b-container class="bv-example-row">
-              <!-- <el-checkbox
-                :indeterminate="isIndeterminate"
-                v-model="checkAll"
-                @change="handleCheckAllChange"
-                >Check all</el-checkbox
-              >
-              <div style="margin: 15px 0"></div>
-              <el-checkbox-group
-                v-model="checkedCities"
-                @change="handleCheckedCitiesChange"
-              >
-                <el-checkbox v-for="city in cities" :label="city" :key="city">{{
-                  city
-                }}</el-checkbox>
-              </el-checkbox-group> -->
               <b-row>
                 <b-col cols="4">
-                  <el-tag>Tên khách sạn: </el-tag>
+                  <el-tag
+                    >Tên {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}:
+                  </el-tag>
                 </b-col>
                 <b-col cols="8">{{ this.hotelInfomation.name }}</b-col>
               </b-row>
@@ -112,63 +115,51 @@
                   @change="changeRadius"
                 >
                 </el-slider>
-                <el-radio v-model="searchType" label="all">Tất cả</el-radio>
-                <el-radio v-model="searchType" label="cafe"
-                  >Quán cà phê</el-radio
+                <el-select
+                  placeholder="Chọn loại địa điểm"
+                  v-model="searchType"
                 >
-                <el-radio v-model="searchType" label="restaurant"
-                  >Nhà hàng</el-radio
-                >
-                <el-radio v-model="searchType" label="hotel"
-                  >Khách sạn</el-radio
-                >
-                <el-radio v-model="searchType" label="hospital"
-                  >Bệnh viện</el-radio
-                >
-                <el-radio v-model="searchType" label="tourist_attraction"
-                  >Danh lam thắng cảnh</el-radio
-                >
-                <el-radio v-model="searchType" label="bank"
-                  >Ngân iu dấu</el-radio
-                >
-                <el-radio v-model="searchType" label="pharmacy"
-                  >Nhà thuốc</el-radio
-                >
-                <el-button type="primary" @click="getAround"
+                  <el-option
+                    v-for="item in typeOptions"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  >
+                  </el-option>
+                </el-select>
+
+                <el-button type="primary" class="m-2" @click="getAround"
                   >Tìm kiếm địa điểm xung quanh</el-button
                 >
               </div>
 
-              <div class="row">
+              <div class="row mt-2">
                 <h5 v-if="noImage">Không có hình ảnh cho địa điểm này</h5>
                 <p v-if="imageLoading">
                   Đang tải hình ảnh...
                   <i class="el-icon-loading"></i>
                 </p>
-                <div
-                  class="col-lg-4 col-md-12 mb-4 mb-lg-0"
-                  v-for="(hotel, index) in hotelInfomation.photos"
-                  :key="index"
+                <el-carousel
+                  :interval="2000"
+                  arrow="always"
+                  indicator-position="none"
                 >
-                  <el-image
-                    v-if="hotelInfomation.photos"
-                    style="width: 200px; height: 200px"
-                    :src="hotel.src"
-                    :fit="contain"
-                    class="hotelImg shadow-1-strong rounded mb-2"
-                    @click="openGallery(index)"
-                    onerror="this.src='https://previews.123rf.com/images/koblizeek/koblizeek2001/koblizeek200100006/137486703-.jpg?fj=1'"
-                    alt="Loi"
-                  ></el-image>
-                  <!-- <img
-                    v-if="hotelInfomation.photos"
-                    v-bind:src="hotel.src"
-                    @click="openGallery(index)"
-                    class="hotelImg shadow-1-strong rounded mb-2"
-                    onerror="this.src='https://previews.123rf.com/images/koblizeek/koblizeek2001/koblizeek200100006/137486703-.jpg?fj=1'"
-                    alt="Loi"
-                  /> -->
-                </div>
+                  <el-carousel-item
+                    v-for="(hotel, index) in hotelInfomation.photos"
+                    :key="index"
+                  >
+                    <el-image
+                      v-if="POIInfomation.photos"
+                      :src="hotel.src"
+                      :fit="contain"
+                      class="hotelImg shadow-1-strong rounded mb-2"
+                      @click="openGallery1(index)"
+                      onerror="this.src='https://previews.123rf.com/images/koblizeek/koblizeek2001/koblizeek200100006/137486703-.jpg?fj=1'"
+                      alt="Loi"
+                    ></el-image>
+                  </el-carousel-item>
+                </el-carousel>
+                <!--  -->
               </div>
             </b-container>
           </div>
@@ -211,36 +202,48 @@
                 <b-col cols="8">{{ this.POIInfomation.address }}</b-col>
               </b-row>
 
-              <div class="row">
+              <div class="row mt-2">
                 <h5 v-if="noImage">Không có hình ảnh cho địa điểm này</h5>
                 <p v-if="imageLoading">
                   Đang tải hình ảnh...
                   <i class="el-icon-loading"></i>
                 </p>
-                <div
-                  class="col-lg-4 col-md-12 mb-4 mb-lg-0"
-                  v-for="(hotel, index) in POIInfomation.photos"
-                  :key="index"
+                <el-carousel
+                  :interval="2000"
+                  arrow="always"
+                  indicator-position="none"
                 >
-                  <el-image
-                    v-if="POIInfomation.photos"
-                    style="width: 200px; height: 200px"
-                    :src="hotel.src"
-                    :fit="contain"
-                    class="hotelImg shadow-1-strong rounded mb-2"
-                    @click="openGallery1(index)"
-                    onerror="this.src='https://previews.123rf.com/images/koblizeek/koblizeek2001/koblizeek200100006/137486703-.jpg?fj=1'"
-                    alt="Loi"
-                  ></el-image>
-                </div>
+                  <el-carousel-item
+                    v-for="(hotel, index) in POIInfomation.photos"
+                    :key="index"
+                  >
+                    <el-image
+                      v-if="POIInfomation.photos"
+                      :src="hotel.src"
+                      :fit="contain"
+                      class="hotelImg shadow-1-strong rounded mb-2"
+                      @click="openGallery1(index)"
+                      onerror="this.src='https://previews.123rf.com/images/koblizeek/koblizeek2001/koblizeek200100006/137486703-.jpg?fj=1'"
+                      alt="Loi"
+                    ></el-image>
+                  </el-carousel-item>
+                </el-carousel>
               </div>
             </b-container>
           </div>
           <!-- END POI  -->
           <div class="hotelList" v-if="isShowHotelList">
-            <h4>Danh sách khách sạn</h4>
+            <h4>
+              Danh sách {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+            </h4>
+            <h6 v-if="isLoadHotelData">
+              Đang tải dữ liệu
+              {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+              <i class="el-icon-loading"></i>
+            </h6>
 
             <el-table
+              v-loading="loading"
               :data="hotelList"
               height="650"
               style="width: 100%"
@@ -251,16 +254,22 @@
               @row-click="hotelClickHandler"
             >
               <div class="hotelTable">
-                <el-table-column prop="vicinity" label="Địa chỉ">
+                <el-table-column prop="photoPath" width="120">
+                  <template slot-scope="scope">
+                    <img :src="scope.row.photoPath[0]" class="image-thumb" />
+                  </template>
                 </el-table-column>
-                <el-table-column prop="name" label="Tên khách sạn" width="280">
+                <el-table-column prop="name" width="400">
+                  <template slot-scope="scope">
+                    <b>
+                      {{ scope.row.name }}
+                    </b>
+                    <br />
+                    {{ scope.row.vicinity }}
+                  </template>
                 </el-table-column>
-                <el-table-column
-                  prop="rating"
-                  label="Đánh giá"
-                  width="100"
-                  sortable
-                >
+
+                <el-table-column prop="rating" width="80" sortable>
                   <template slot-scope="scope">
                     <div style="float: right">
                       {{ scope.row.rating }}
@@ -273,16 +282,6 @@
                 </el-table-column>
               </div>
             </el-table>
-            <!-- <b-table
-              striped
-              hover
-              :items="hotelList"
-              :fields="fields"
-              sticky-header="1000px"
-              class="hotelTable"
-              id="hotelTableId"
-              @row-clicked="hotelClickHandler"
-            ></b-table> -->
           </div>
           <div class="hotelList" v-if="isShowAroundTable">
             <h4>Danh sách địa điểm xung quanh của</h4>
@@ -304,7 +303,7 @@
               <div class="hotelTable">
                 <el-table-column prop="vicinity" label="Địa chỉ">
                 </el-table-column>
-                <el-table-column prop="name" label="Tên khách sạn" width="280">
+                <el-table-column prop="name" label="Tên địa điểm" width="280">
                 </el-table-column>
                 <el-table-column
                   prop="rating"
@@ -329,22 +328,41 @@
             v-if="loadMore"
             variant="outline-primary"
             @click="callMoreHotel()"
-            >Load more hotel
+            >Tải thêm {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
           </b-button>
         </b-col>
-        <b-col cols="6" class="mapContent">
-          <GmapAutocomplete
-            class="form-control"
-            @place_changed="hotelClickHandler"
-          />
+        <b-col cols="7" class="mapContent">
+          <div class="search-area">
+            <GmapAutocomplete
+              class="form-control search-location"
+              @place_changed="hotelClickHandler"
+            />
+
+            <el-button
+              type="primary"
+              class="locate-icon"
+              icon="el-icon-location"
+              @click="directionFromCurrentLocation"
+            ></el-button>
+          </div>
+
           <p v-if="!loadMap">Loading map... <i class="el-icon-loading"></i></p>
           <GmapMap
-            :options="{ gestureHandling: 'greedy' }"
             ref="mapRef"
             v-if="loadMap"
             :center="{ lat: this.position.lat, lng: this.position.lng }"
             :zoom="16"
             map-type-id="hybrid"
+            :options="{
+              gestureHandling: 'greedy',
+              zoomControl: true,
+              mapTypeControl: true,
+              scaleControl: true,
+              streetViewControl: true,
+              rotateControl: true,
+              fullscreenControl: true,
+              disableDefaultUi: true,
+            }"
             style="width: 100%; height: 95%"
           >
             <DirectionsRenderer
@@ -352,17 +370,19 @@
               :origin="position"
               :destination="endLocation"
             />
+
             <GmapMarker
               :key="this.position.lng"
               :position="this.position"
               :clickable="true"
-              :draggable="true"
+              :draggable="false"
               @click="center = this.position"
             />
             <GmapMarker
               :key="index"
               v-for="(m, index) in poiMarker"
               :position="m.geometry.location"
+              :draggable="false"
               @click="directions(m.geometry.location)"
             />
           </GmapMap>
@@ -396,14 +416,12 @@ import DirectionsRenderer from "./DirectionsRenderer";
 import VueGoogleAutocomplete from "vue-google-autocomplete";
 
 import LightBox from "vue-it-bigger";
-import("vue-it-bigger/dist/vue-it-bigger.min.css"); // when using webpack
 
 export default {
   name: "GoogleMap",
   components: {
     DirectionsRenderer,
     VueGoogleAutocomplete,
-
     LightBox,
   },
   props: {
@@ -412,9 +430,48 @@ export default {
 
   data() {
     return {
-      searchType: "all",
+      isLoadHotelData: false,
+      isSearchHotel: false,
+      isSearchHomestay: false,
+      searchType: null,
       searchRadius: 5000,
-
+      typeOptions: [
+        {
+          key: 1,
+          label: "Quán cà phê",
+          value: "cafe",
+        },
+        {
+          key: 2,
+          label: "Khách sạn",
+          value: "hotel",
+        },
+        {
+          key: 3,
+          label: "Nhà hàng",
+          value: "restaurant",
+        },
+        {
+          key: 4,
+          label: "Bệnh viện",
+          value: "hospital",
+        },
+        {
+          key: 5,
+          label: "Ngân hàng",
+          value: "bank",
+        },
+        {
+          key: 6,
+          label: "Danh lam thắng cảnh",
+          value: "tourist_attraction",
+        },
+        {
+          key: 7,
+          label: "Tất cả",
+          value: "",
+        },
+      ],
       loadMore: false,
       isShowHotelList: true,
       isShowHotelInfomation: false,
@@ -423,6 +480,7 @@ export default {
       isShowPointInfomation: false,
       fields: [
         // A column that needs custom formatting
+        { key: "photoPath", label: "Photo" },
         { key: "name", label: "Hotel Name" },
         { key: "rating", label: "Rating", sortable: true },
         { key: "vicinity", label: "Address" },
@@ -497,6 +555,14 @@ export default {
     },
   },
   methods: {
+    handleSearchByResort() {
+      this.isSearchHomestay = true;
+      this.isSearchHotel = false;
+    },
+    handleSearchByHotel() {
+      this.isSearchHomestay = false;
+      this.isSearchHotel = true;
+    },
     backToHotelInfomation() {
       this.isShowAroundTable = false;
       this.isShowHotelInfomation = true;
@@ -523,6 +589,7 @@ export default {
       this.$socket.emit("selectGeo", data);
       this.isShowAroundTable = true;
       this.isShowHotelInfomation = false;
+      // this.getCurrentPosition();
     },
     getHotelInfo() {},
     openGallery(index) {
@@ -637,7 +704,6 @@ export default {
       this.POIInfomation.rating = record.rating;
       this.POIInfomation.address = record.vicinity;
       this.POIInfomation.place_id = record.place_id;
-
       this.$refs.mapRef.$mapPromise.then((map) => {
         console.log(map);
         map.zoom = 18;
@@ -721,6 +787,7 @@ export default {
     },
 
     getAddressData(addressData, placeResultData, id) {
+      this.isLoadHotelData = true;
       this.loadMore = false;
       this.isShowHotelList = true;
       this.isShowHotelInfomation = false;
@@ -747,6 +814,7 @@ export default {
       };
       console.log("cityInfo", data);
       axios.post(`http://localhost:8081/records/addCity`, data);
+
       axios
         .post(`http://localhost:8081/records/getHotelOfCity`, {
           radius: "20000",
@@ -754,6 +822,7 @@ export default {
           cityName: addressData.locality,
           pageToken: this.pageToken,
         })
+
         .then((response) => {
           console.log("Hotel data:", response);
           this.pageToken = response.data[response.data.length - 1].pageToken;
@@ -778,6 +847,73 @@ export default {
               this.hotelList.push(hotel);
             });
           }
+          console.log("Hotel LISTTTTT: ", this.hotelList);
+          this.isLoadHotelData = false;
+        });
+    },
+    getAddressDataResort(addressData, placeResultData, id) {
+      this.isLoadHotelData = true;
+      this.loadMore = false;
+      this.isShowHotelList = true;
+      this.isShowHotelInfomation = false;
+      this.isShowAroundTable = false;
+      this.isShowAroundImfomation = false;
+      this.isShowPointInfomation = false;
+      this.hotelList = [];
+      document.querySelector("#hotelTableId").scrollIntoView({
+        behavior: "smooth",
+      });
+      this.hotelList = [];
+      this.pageToken = "";
+      console.log(addressData, placeResultData, id);
+      this.cityPosition = {
+        lat: addressData.latitude,
+        lng: addressData.longitude,
+      };
+      this.cityName = addressData.locality;
+      const data = {
+        position: { lat: addressData.latitude, lng: addressData.longitude },
+        cityName: addressData.locality,
+        country: addressData.country,
+        place_id: placeResultData.place_id,
+      };
+      console.log("cityInfo", data);
+      axios.post(`http://localhost:8081/records/addCity`, data);
+
+      axios
+        .post(`http://localhost:8081/records/getResortOfCity`, {
+          radius: "20000",
+          position: { lat: addressData.latitude, lng: addressData.longitude },
+          cityName: addressData.locality,
+          pageToken: this.pageToken,
+        })
+
+        .then((response) => {
+          console.log("Hotel data:", response);
+          this.pageToken = response.data[response.data.length - 1].pageToken;
+          console.log("pageToken: ", this.pageToken);
+          if (response.data[response.data.length - 1].pageToken == undefined) {
+            this.loadMore = false;
+            //Khong con next  page token
+            this.pageToken = "";
+            //xoa bo phan tu cuoi
+            response.data.splice(-1);
+            //luu vao state
+            response.data.map((hotel) => {
+              this.hotelList.push(hotel);
+            });
+          } else {
+            //con next page token
+            this.loadMore = true;
+            //xoa bo phan tu cuoi
+            response.data.splice(-1);
+            //luu vao state
+            response.data.map((hotel) => {
+              this.hotelList.push(hotel);
+            });
+          }
+          this.isLoadHotelData = false;
+          console.log("Resort LISTTTTT: ", this.hotelList);
         });
     },
     clickButton() {
@@ -790,10 +926,21 @@ export default {
     },
     directions(destination) {
       console.log(destination);
-
+      // this.pointClickHandler(destination);
       this.endLocation = {
         lat: destination.lat,
         lng: destination.lng,
+      };
+    },
+    directionFromCurrentLocation() {
+      this.locateMe();
+      this.position = {
+        lat: this.position.lat,
+        lng: this.position.lng,
+      };
+      this.endLocation = {
+        lat: this.endLocation.lat,
+        lng: this.endLocation.lng,
       };
     },
 
@@ -842,6 +989,7 @@ export default {
       navigator.geolocation.getCurrentPosition(success, error);
     },
   },
+
   created() {
     this.locateMe();
     console.log(this.markers);
@@ -900,18 +1048,27 @@ export default {
 
 .search {
   position: absolute;
-  bottom: 220px;
+  bottom: 140px;
   width: 40% !important;
   height: 50px !important;
   left: 130px;
 }
 
-.searchBtn {
+.searchBtnHotel {
   position: absolute;
   height: 50px !important;
   bottom: 220px;
-
-  left: 736px;
+  width: 300px;
+  color: white;
+  left: 130px;
+}
+.searchBtnResort {
+  position: absolute;
+  height: 50px !important;
+  bottom: 220px;
+  width: 300px;
+  color: white;
+  left: 436px;
 }
 
 .headerImg {
@@ -951,5 +1108,13 @@ export default {
 
 .pac-container .pac-logo .hdpi {
   z-index: 999 !important;
+}
+.image-thumb {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+}
+.search-area {
+  display: flex;
 }
 </style>
