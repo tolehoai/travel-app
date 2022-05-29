@@ -22,38 +22,20 @@
         nữa.
       </h5>
 
-      <vue-google-autocomplete
-        v-if="isSearchHotel"
-        id="map"
-        classname="form-control"
-        placeholder="Nhập vào thành phố muốn tìm kiếm khách sạn..."
-        v-on:placechanged="getAddressData"
-        types="(regions)"
-        class="search el-input"
-      >
+      <vue-google-autocomplete v-if="isSearchHotel" id="map" classname="form-control"
+        placeholder="Nhập vào thành phố muốn tìm kiếm khách sạn..." v-on:placechanged="getAddressData" types="(regions)"
+        class="search el-input">
       </vue-google-autocomplete>
-      <vue-google-autocomplete
-        v-if="isSearchHomestay"
-        id="map"
-        classname="form-control"
-        placeholder="Nhập vào thành phố muốn tìm kiếm homestay..."
-        v-on:placechanged="getAddressData"
-        types="(regions)"
-        class="search el-input"
-      >
+      <vue-google-autocomplete v-if="isSearchHomestay" id="map" classname="form-control"
+        placeholder="Nhập vào thành phố muốn tìm kiếm homestay..." v-on:placechanged="getAddressData" types="(regions)"
+        class="search el-input">
       </vue-google-autocomplete>
-      <vue-google-autocomplete
-        v-if="isSearchByTourist"
-        id="map"
-        classname="form-control"
-        placeholder="Nhập vào thành phố muốn tìm kiếm Danh lam thắng cảnh..."
-        v-on:placechanged="getAddressData"
-        types="(regions)"
-        class="search el-input"
-      >
+      <vue-google-autocomplete v-if="isSearchByTourist" id="map" classname="form-control"
+        placeholder="Nhập vào thành phố muốn tìm kiếm Danh lam thắng cảnh..." v-on:placechanged="getAddressData"
+        types="(regions)" class="search el-input">
       </vue-google-autocomplete>
       <!-- <b-form-input :type="type" class="search"> </b-form-input> -->
-      <b-button
+      <!-- <b-button
         variant="warning"
         class="searchBtnHotel"
         @click="handleSearchByHotel"
@@ -70,7 +52,15 @@
         class="searchBtnTourist"
         @click="handleSearchByTourist"
         >Khám phá ngay Danh lam thắng cảnh</b-button
-      >
+      > -->
+      <el-radio v-model="radio" label="isSearchHotel" class="searchBtnHotel" @change="handleSearchByHotel"><p class="radioText">Khám phá ngay
+        khách sạn</p></el-radio>
+      <el-radio v-model="radio" label="isSearchHomestay" class="searchBtnResort" @change="handleSearchByResort"><p class="radioText">Khám phá
+        ngay Homestay</p></el-radio>
+      <el-radio v-model="radio" label="isSearchByTourist" class="searchBtnTourist" @change="handleSearchByTourist"><p class="radioText">Khám
+        phá ngay Danh lam thắng cảnh</p>
+      </el-radio>
+
     </div>
 
     <b-container fluid class="app-container">
@@ -83,21 +73,23 @@
           /> -->
           <div class="hotelInfomation" v-if="isShowHotelInfomation">
             <h1>
-              Thông tin {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+              Thông tin {{ this.isSearchHomestay ? "Homestay" : "" }}
+              {{this.isSearchHotel?"Khách sạn":""}}
               {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
             </h1>
             <p @click="backToHotelList" class="backToHotelList">
               <i class="el-icon-back"></i>
               Trở về danh sách
-              {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+              {{ this.isSearchHomestay ? "Homestay" : "" }}
+              {{this.isSearchHotel?"Khách sạn":""}}
               {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
             </p>
 
             <b-container class="bv-example-row">
               <b-row>
                 <b-col cols="4">
-                  <el-tag
-                    >Tên {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}:
+                  <el-tag>Tên {{ this.isSearchHomestay ? "Homestay" : "" }}
+                  {{this.isSearchHotel?"Khách sạn":""}}:
                     {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
                   </el-tag>
                 </b-col>
@@ -108,13 +100,8 @@
                   <el-tag type="success">Đánh giá: </el-tag>
                 </b-col>
                 <b-col cols="8">
-                  <el-rate
-                    v-model="this.hotelInfomation.rating"
-                    disabled
-                    show-score
-                    text-color="#ff9900"
-                    score-template="{value} sao"
-                  >
+                  <el-rate v-model="this.hotelInfomation.rating" disabled show-score text-color="#ff9900"
+                    score-template="{value} sao">
                   </el-rate>
                 </b-col>
               </b-row>
@@ -128,31 +115,15 @@
               <div class="block">
                 <br />
                 <span class="demonstration">Chọn bán kính tìm kiếm: </span>
-                <el-slider
-                  v-model="searchRadius"
-                  :step="1000"
-                  :min="1000"
-                  :max="20000"
-                  show-stops
-                  @change="changeRadius"
-                >
+                <el-slider v-model="searchRadius" :step="1000" :min="1000" :max="20000" show-stops
+                  @change="changeRadius">
                 </el-slider>
-                <el-select
-                  placeholder="Chọn loại địa điểm"
-                  v-model="searchType"
-                >
-                  <el-option
-                    v-for="item in typeOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  >
+                <el-select placeholder="Chọn loại địa điểm" v-model="searchType">
+                  <el-option v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value">
                   </el-option>
                 </el-select>
 
-                <el-button type="primary" class="m-2" @click="getAround"
-                  >Tìm kiếm địa điểm xung quanh</el-button
-                >
+                <el-button type="primary" class="m-2" @click="getAround">Tìm kiếm địa điểm xung quanh</el-button>
               </div>
 
               <div class="row mt-2">
@@ -161,24 +132,12 @@
                   Đang tải hình ảnh...
                   <i class="el-icon-loading"></i>
                 </p>
-                <el-carousel
-                  :interval="2000"
-                  arrow="always"
-                  indicator-position="none"
-                >
-                  <el-carousel-item
-                    v-for="(hotel, index) in hotelInfomation.photos"
-                    :key="index"
-                  >
-                    <el-image
-                      v-if="POIInfomation.photos"
-                      :src="hotel.src"
-                      :fit="contain"
-                      class="hotelImg shadow-1-strong rounded mb-2"
-                      @click="openGallery1(index)"
+                <el-carousel :interval="2000" arrow="always" indicator-position="none">
+                  <el-carousel-item v-for="(hotel, index) in hotelInfomation.photos" :key="index">
+                    <el-image v-if="POIInfomation.photos" :src="hotel.src" :fit="contain"
+                      class="hotelImg shadow-1-strong rounded mb-2" @click="openGallery1(index)"
                       onerror="this.src='https://previews.123rf.com/images/koblizeek/koblizeek2001/koblizeek200100006/137486703-.jpg?fj=1'"
-                      alt="Loi"
-                    ></el-image>
+                      alt="Loi"></el-image>
                   </el-carousel-item>
                 </el-carousel>
                 <!--  -->
@@ -207,13 +166,8 @@
                   <el-tag type="success">Đánh giá: </el-tag>
                 </b-col>
                 <b-col cols="8">
-                  <el-rate
-                    v-model="this.POIInfomation.rating"
-                    disabled
-                    show-score
-                    text-color="#ff9900"
-                    score-template="{value} sao"
-                  >
+                  <el-rate v-model="this.POIInfomation.rating" disabled show-score text-color="#ff9900"
+                    score-template="{value} sao">
                   </el-rate>
                 </b-col>
               </b-row>
@@ -230,24 +184,12 @@
                   Đang tải hình ảnh...
                   <i class="el-icon-loading"></i>
                 </p>
-                <el-carousel
-                  :interval="2000"
-                  arrow="always"
-                  indicator-position="none"
-                >
-                  <el-carousel-item
-                    v-for="(hotel, index) in POIInfomation.photos"
-                    :key="index"
-                  >
-                    <el-image
-                      v-if="POIInfomation.photos"
-                      :src="hotel.src"
-                      :fit="contain"
-                      class="hotelImg shadow-1-strong rounded mb-2"
-                      @click="openGallery1(index)"
+                <el-carousel :interval="2000" arrow="always" indicator-position="none">
+                  <el-carousel-item v-for="(hotel, index) in POIInfomation.photos" :key="index">
+                    <el-image v-if="POIInfomation.photos" :src="hotel.src" :fit="contain"
+                      class="hotelImg shadow-1-strong rounded mb-2" @click="openGallery1(index)"
                       onerror="this.src='https://previews.123rf.com/images/koblizeek/koblizeek2001/koblizeek200100006/137486703-.jpg?fj=1'"
-                      alt="Loi"
-                    ></el-image>
+                      alt="Loi"></el-image>
                   </el-carousel-item>
                 </el-carousel>
               </div>
@@ -256,27 +198,20 @@
           <!-- END POI  -->
           <div class="hotelList" v-if="isShowHotelList">
             <h4>
-              Danh sách {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+              Danh sách {{ this.isSearchHomestay ? "Homestay" : "" }}
+              {{this.isSearchHotel?"Khách sạn":""}}
               {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
             </h4>
             <h6 v-if="isLoadHotelData">
               Đang tải dữ liệu
-              {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+              {{ this.isSearchHomestay ? "Homestay" : "" }}
+              {{this.isSearchHotel?"Khách sạn":""}}
               {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
               <i class="el-icon-loading"></i>
             </h6>
 
-            <el-table
-              v-loading="loading"
-              :data="hotelList"
-              height="650"
-              style="width: 100%"
-              :show-header="true"
-              empty-text="."
-              class="hotelTable"
-              id="hotelTableId"
-              @row-click="hotelClickHandler"
-            >
+            <el-table v-loading="loading" :data="hotelList" height="780" style="width: 100%" :show-header="true"
+              empty-text="." class="hotelTable" id="hotelTableId" @row-click="hotelClickHandler">
               <div class="hotelTable">
                 <el-table-column prop="photoPath" width="120">
                   <template slot-scope="scope">
@@ -297,10 +232,7 @@
                   <template slot-scope="scope">
                     <div style="float: right">
                       {{ scope.row.rating }}
-                      <i
-                        class="el-rate__icon el-icon-star-on"
-                        style="color: rgb(247, 186, 42)"
-                      ></i>
+                      <i class="el-rate__icon el-icon-star-on" style="color: rgb(247, 186, 42)"></i>
                     </div>
                   </template>
                 </el-table-column>
@@ -314,72 +246,45 @@
               <i class="el-icon-back"></i>
               Trở về chi tiết địa điểm
             </p>
-            <el-table
-              :data="aroundInfomation"
-              height="650"
-              style="width: 100%"
-              :show-header="true"
-              empty-text="."
-              class="hotelTable"
-              id="hotelTableId"
-              @row-click="pointClickHandler"
-            >
+            <el-table :data="aroundInfomation" height="780" style="width: 100%" :show-header="true" empty-text="."
+              class="hotelTable" id="hotelTableId" @row-click="pointClickHandler">
               <div class="hotelTable">
                 <el-table-column prop="vicinity" label="Địa chỉ">
                 </el-table-column>
                 <el-table-column prop="name" label="Tên địa điểm" width="280">
                 </el-table-column>
-                <el-table-column
-                  prop="rating"
-                  label="Đánh giá"
-                  width="100"
-                  sortable
-                >
+                <el-table-column prop="rating" label="Đánh giá" width="100" sortable>
                   <template slot-scope="scope">
                     <div style="float: right">
                       {{ scope.row.rating }}
-                      <i
-                        class="el-rate__icon el-icon-star-on"
-                        style="color: rgb(247, 186, 42)"
-                      ></i>
+                      <i class="el-rate__icon el-icon-star-on" style="color: rgb(247, 186, 42)"></i>
                     </div>
                   </template>
                 </el-table-column>
               </div>
             </el-table>
           </div>
-          <b-button
-            v-if="loadMore"
-            variant="outline-primary"
-            @click="callMoreHotel()"
-            >Tải thêm {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+          <b-button v-if="loadMore" variant="outline-primary" @click="callMoreHotel()">Tải thêm {{ this.isSearchHomestay
+              ? "Homestay" : ""
+          }}
+          {{ this.isSearchHotel
+              ? "Khách sạn" : ""
+          }}
             {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
           </b-button>
         </b-col>
         <b-col cols="7" class="mapContent">
           <div class="search-area">
-            <GmapAutocomplete
-              class="form-control search-location"
-              placeholder="Nhập vào địa điểm cần tìm kiếm..."
-              @place_changed="hotelClickHandler"
-            />
+            <GmapAutocomplete class="form-control search-location" placeholder="Nhập vào địa điểm cần tìm kiếm..."
+              @place_changed="hotelClickHandler" />
 
-            <el-button
-              type="primary"
-              class="locate-icon"
-              icon="el-icon-location"
-              @click="directionFromCurrentLocation"
-            ></el-button>
+            <el-button type="primary" class="locate-icon" icon="el-icon-location" @click="directionFromCurrentLocation">
+            </el-button>
           </div>
 
           <p v-if="!loadMap">Loading map... <i class="el-icon-loading"></i></p>
-          <GmapMap
-            ref="mapRef"
-            v-if="loadMap"
-            :center="{ lat: this.position.lat, lng: this.position.lng }"
-            :zoom="16"
-            map-type-id="hybrid"
-            :options="{
+          <GmapMap ref="mapRef" v-if="loadMap" :center="{ lat: this.position.lat, lng: this.position.lng }" :zoom="16"
+            map-type-id="hybrid" :options="{
               gestureHandling: 'greedy',
               zoomControl: true,
               mapTypeControl: true,
@@ -388,49 +293,22 @@
               rotateControl: true,
               fullscreenControl: true,
               disableDefaultUi: true,
-            }"
-            style="width: 100%; height: 95%"
-          >
-            <DirectionsRenderer
-              travelMode="DRIVING"
-              :origin="position"
-              :destination="endLocation"
-            />
+            }" style="width: 100%; height: 95%">
+            <DirectionsRenderer travelMode="DRIVING" :origin="position" :destination="endLocation" />
 
-            <GmapMarker
-              :key="this.position.lng"
-              :position="this.position"
-              :clickable="true"
-              :draggable="false"
-              @click="center = this.position"
-            />
-            <GmapMarker
-              :key="index"
-              v-for="(m, index) in poiMarker"
-              :position="m.geometry.location"
-              :draggable="false"
-            />
+            <GmapMarker :key="this.position.lng" :position="this.position" :clickable="true" :draggable="false"
+              @click="center = this.position" />
+            <GmapMarker :key="index" v-for="(m, index) in poiMarker" :position="m.geometry.location"
+              :draggable="false" />
             @click="directions(m.geometry.location)" />
           </GmapMap>
         </b-col>
       </b-row>
-      <LightBox
-        v-if="hotelInfomation.photos"
-        ref="lightbox"
-        :media="hotelInfomation.photos"
-        :show-caption="true"
-        :showLightBox="false"
-        :interfaceHideTime="200000"
-      >
+      <LightBox v-if="hotelInfomation.photos" ref="lightbox" :media="hotelInfomation.photos" :show-caption="true"
+        :showLightBox="false" :interfaceHideTime="200000">
       </LightBox>
-      <LightBox
-        v-if="POIInfomation.photos"
-        ref="lightbox1"
-        :media="POIInfomation.photos"
-        :show-caption="true"
-        :showLightBox="false"
-        :interfaceHideTime="200000"
-      >
+      <LightBox v-if="POIInfomation.photos" ref="lightbox1" :media="POIInfomation.photos" :show-caption="true"
+        :showLightBox="false" :interfaceHideTime="200000">
       </LightBox>
     </b-container>
   </div>
@@ -456,6 +334,7 @@ export default {
 
   data() {
     return {
+      radio: null,
       isLoadHotelData: false,
       isSearchHotel: false,
       isSearchHomestay: false,
@@ -588,6 +467,7 @@ export default {
       this.isSearchByTourist = false;
     },
     handleSearchByHotel() {
+      console.log("run");
       this.isSearchHomestay = false;
       this.isSearchHotel = true;
       this.isSearchByTourist = false;
@@ -625,7 +505,7 @@ export default {
       this.isShowHotelInfomation = false;
       // this.getCurrentPosition();
     },
-    getHotelInfo() {},
+    getHotelInfo() { },
     openGallery(index) {
       this.$refs.lightbox.showImage(index);
     },
@@ -1027,7 +907,7 @@ export default {
 }
 
 .header {
-  background-color: #2e51e8;
+  background-color: #09263391;
 
   height: 100vh;
   position: relative;
@@ -1046,9 +926,10 @@ export default {
   height: 50px !important;
   bottom: 220px;
   width: 300px;
-  color: white;
+ 
   left: 130px;
 }
+
 .searchBtnResort {
   position: absolute;
   height: 50px !important;
@@ -1106,14 +987,17 @@ export default {
 .pac-container .pac-logo .hdpi {
   z-index: 999 !important;
 }
+
 .image-thumb {
   width: 100%;
   height: 100px;
   object-fit: cover;
 }
+
 .search-area {
   display: flex;
 }
+
 .video-background {
   min-width: 100%;
   min-height: 100%;
@@ -1123,5 +1007,12 @@ export default {
   transform: translateX(-50%) translateY(-50%);
   height: 100vh;
   object-fit: fill;
+  z-index: -1;
+}
+.radioText{
+  display: inline-block;
+  font-size: 20px;
+  color: yellow;
+  font-weight: 600;
 }
 </style>
