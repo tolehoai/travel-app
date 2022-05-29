@@ -10,7 +10,10 @@
     >
     </vue-google-autocomplete> -->
     <div class="header">
-      <img src="../assets/images/header-poi.png" alt="bg" class="headerImg" />
+      <video autoplay muted loop class="video-background">
+        <source src="../../src/assets/images/bg.mp4" type="video/mp4" />
+      </video>
+      <!-- <img src="../assets/images/header-poi.png" alt="bg" class="headerImg" /> -->
       <h1 class="app-title">Google Map - Point of Interest</h1>
       <h5 class="titleDesc">
         Sử dụng TravelPOI, bạn có thể truy cập địa điểm yêu thích chính xác,
@@ -39,6 +42,16 @@
         class="search el-input"
       >
       </vue-google-autocomplete>
+      <vue-google-autocomplete
+        v-if="isSearchByTourist"
+        id="map"
+        classname="form-control"
+        placeholder="Nhập vào thành phố muốn tìm kiếm Danh lam thắng cảnh..."
+        v-on:placechanged="getAddressData"
+        types="(regions)"
+        class="search el-input"
+      >
+      </vue-google-autocomplete>
       <!-- <b-form-input :type="type" class="search"> </b-form-input> -->
       <b-button
         variant="warning"
@@ -51,6 +64,12 @@
         class="searchBtnResort"
         @click="handleSearchByResort"
         >Khám phá ngay Homestay</b-button
+      >
+      <b-button
+        variant="warning"
+        class="searchBtnTourist"
+        @click="handleSearchByTourist"
+        >Khám phá ngay Danh lam thắng cảnh</b-button
       >
     </div>
 
@@ -65,11 +84,13 @@
           <div class="hotelInfomation" v-if="isShowHotelInfomation">
             <h1>
               Thông tin {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+              {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
             </h1>
             <p @click="backToHotelList" class="backToHotelList">
               <i class="el-icon-back"></i>
               Trở về danh sách
               {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+              {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
             </p>
 
             <b-container class="bv-example-row">
@@ -77,6 +98,7 @@
                 <b-col cols="4">
                   <el-tag
                     >Tên {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}:
+                    {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
                   </el-tag>
                 </b-col>
                 <b-col cols="8">{{ this.hotelInfomation.name }}</b-col>
@@ -235,10 +257,12 @@
           <div class="hotelList" v-if="isShowHotelList">
             <h4>
               Danh sách {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+              {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
             </h4>
             <h6 v-if="isLoadHotelData">
               Đang tải dữ liệu
               {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+              {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
               <i class="el-icon-loading"></i>
             </h6>
 
@@ -329,6 +353,7 @@
             variant="outline-primary"
             @click="callMoreHotel()"
             >Tải thêm {{ this.isSearchHomestay ? "Homestay" : "Khách sạn" }}
+            {{ this.isSearchByTourist ? "Danh lam thắng cảnh" : "" }}
           </b-button>
         </b-col>
         <b-col cols="7" class="mapContent">
@@ -434,6 +459,7 @@ export default {
       isLoadHotelData: false,
       isSearchHotel: false,
       isSearchHomestay: false,
+      isSearchByTourist: false,
       searchType: null,
       searchRadius: 5000,
       typeOptions: [
@@ -559,10 +585,17 @@ export default {
     handleSearchByResort() {
       this.isSearchHomestay = true;
       this.isSearchHotel = false;
+      this.isSearchByTourist = false;
     },
     handleSearchByHotel() {
       this.isSearchHomestay = false;
       this.isSearchHotel = true;
+      this.isSearchByTourist = false;
+    },
+    handleSearchByTourist() {
+      this.isSearchHomestay = false;
+      this.isSearchHotel = false;
+      this.isSearchByTourist = true;
     },
     backToHotelInfomation() {
       this.isShowAroundTable = false;
@@ -688,6 +721,7 @@ export default {
     },
     pointClickHandler(record, index) {
       console.log("Hotel Info: ", record);
+
       this.endLocation = {
         lat: record.geometry.location.lat,
         lng: record.geometry.location.lng,
@@ -821,15 +855,22 @@ export default {
       console.log("cityInfo", data);
       axios.post(`http://localhost:8081/records/addCity`, data);
       var keyword;
+      var type;
+      type = "lodging";
       this.isSearchHomestay
         ? (keyword = "(Homestay) OR (homestay)")
         : (keyword = "(Hotel) OR (khách sạn)");
+      if (this.isSearchByTourist) {
+        keyword = "";
+        type = "tourist_attraction";
+      }
       axios
         .post(`http://localhost:8081/records/getHotelOfCity`, {
           radius: "20000",
           position: { lat: addressData.latitude, lng: addressData.longitude },
           cityName: addressData.locality,
           pageToken: this.pageToken,
+          type: type,
           keyword,
         })
 
@@ -1017,6 +1058,16 @@ export default {
   left: 436px;
 }
 
+.searchBtnTourist {
+  position: absolute;
+  height: 50px !important;
+  bottom: 220px;
+  width: 350px;
+  color: white;
+  left: 742px;
+  bottom: 220px;
+}
+
 .headerImg {
   position: absolute;
   bottom: 0;
@@ -1062,5 +1113,15 @@ export default {
 }
 .search-area {
   display: flex;
+}
+.video-background {
+  min-width: 100%;
+  min-height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  height: 100vh;
+  object-fit: fill;
 }
 </style>

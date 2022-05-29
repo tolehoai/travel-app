@@ -32,11 +32,10 @@ exports.getHotelOfCity = async (req, res) => {
       .placesNearby({
         params: {
           // type: "lodging",
-          type: "lodging",
+          type: location.type,
           radius: location.radius,
           location: location.position,
           key: process.env.GOOGLE_MAP_KEY,
-          // keyword: "(Hotel) OR (khách sạn)",
           keyword: location.keyword,
           pagetoken: location.pageToken || "",
         },
